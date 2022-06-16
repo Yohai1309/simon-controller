@@ -5,6 +5,8 @@ cd simon-controller
 ```
 
 # Running game on Pi
+Connect to the same router of the PI.
+
 open terminal and run 
 ```
 ./do_bot_run.sh
