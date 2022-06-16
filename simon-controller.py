@@ -1,6 +1,9 @@
 import socket
+import os
 
 # Controlling center of Simon game
+os.system("rm ~/Desktop/port.txt")
+os.system("sshpass -p 'Aa123456' scp pi@192.168.0.42:/home/pi/Desktop/simon-py/port.txt ~/Desktop")
 
 RP_IP = '192.168.0.42'
 
