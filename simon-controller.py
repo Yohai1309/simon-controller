@@ -5,7 +5,7 @@ import socket
 RP_IP = '192.168.0.42'
 
 # CHANGE THE PORT TO THE PORT APPEARING ON THE SCREEN
-PORT = 52237
+PORT = 53708
 
 # There are 4 different types of messages to send:
 #   'K' - Success (continuing to the next shape)
