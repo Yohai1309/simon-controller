@@ -20,4 +20,3 @@ while True:
     sock.sendall(msg.encode())
     if msg == 'Q':
         break
-
