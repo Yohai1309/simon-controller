@@ -11,6 +11,13 @@ open terminal and run
 ```
 ./do_bot_run.sh
 ```
+OR type:
+```commandline
+ssh pi@192.168.0.42 'cd Desktop/ && export DISPLAY=:0 && ./simon.sh'
+```
+with password Aa123456
+
+**(Please do not alter the code on the PI)**
 
 # Controlling Simon game
 open `simon_controller.py` and change port to what is written on the pi screen
