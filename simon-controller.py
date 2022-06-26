@@ -39,22 +39,25 @@ def start():
     curr_idx = random.randrange(0, 4)
     last_idx = curr_idx
     res = ""
+    points = 0
     while True:
         for conn_sock in connections:
             if conn_sock == connections[curr_idx]:
                 conn_sock.sendall("your turn".encode())
             else:
                 conn_sock.sendall("not your turn".encode())
-        while res != "finished":
+        while not res.startswith("finished"):
             msg = input("Enter command: ")
             for conn_sock in connections:
                 conn_sock.sendall(msg.encode())
                 res = conn_sock.recv(1024).decode()
+        points = int(res[res.find(":") + 2:])
         while curr_idx == last_idx:
             curr_idx = random.randrange(0, 4)
         last_idx = curr_idx
         res = ""
         if msg == 'Q':
+            print("Points: " + str(points))
             break
 
 
