@@ -11,15 +11,17 @@
 import random
 import socket
 import os
+import time
 from time import sleep
 import turtle
 from turtle import *
+import keyboard
 
 
 YOUR_TURN = "your turn"
 NOT_YOUR_TURN = "not your turn"
 clicked = False
-
+time_ground = 0
 
 shapes = [
     'circle.gif',
@@ -145,7 +147,14 @@ def configure_button(x: int, y: int, txt: str):
     return button
 
 
-def next_clicked(x, y):
+def back_clicked(e):
+    global curr_idx, curr
+    connections[curr_idx].sendall('B'.encode())
+    curr -= 2
+    change_num(level)
+
+
+def next_clicked(x = None, y = None):
     global curr_idx, last_idx, level, points
     global clicked
     if clicked:
@@ -173,17 +182,18 @@ def fail_clicked(x, y):
     change_num(level, True)
     clicked = False
 
+
 def restart_clicked(x, y):
-    global clicked
+    global clicked, time_ground
     if clicked:
         return
     clicked = True
     global curr_idx, level, curr, points, last_idx
     connections[curr_idx].sendall('R'.encode())
-    
+    total_time = time.time() - time_ground
     # show points
     Screen().clearscreen()
-    turtle.write("You gained " + str(points) + " Points!", font=("Verdana", 50, "normal"), align="center")
+    turtle.write("You gained " + str(points) + " Points!\nTimer - " + str(round(total_time, 2)), font=("Verdana", 50, "normal"), align="center")
     hideturtle()
     sleep(10)
     print("Points - " + str(points))
@@ -200,6 +210,7 @@ def restart_clicked(x, y):
     while curr_idx == last_idx:
         curr_idx = random.randrange(0, 4)
     last_idx = curr_idx
+    time_ground = time.time()
     reload_level()
     clicked = False
     
@@ -237,8 +248,19 @@ def reload_level():
     # create the sequence
     seq = create_sequence(level)
 
+    msg = str(level) +'#' + seq
     # send the sequence to the showing screen
-    sock.sendall((str(level) + seq).encode())
+    sock.sendall(msg.encode())
+
+    ###
+
+    # Protocol should look like this:
+    #   level#seqType#seq
+    # level: the level number
+    # seqType: the type of the seq(images, text-names, text-colors, qr-names, qr-colors)
+    # seq: the sequence to present
+
+    ###
 
     # show the sequence on the screen
     show_seq(seq)
@@ -246,7 +268,7 @@ def reload_level():
 
 
 def start():
-    global curr, points, level, curr_idx, last_idx
+    global curr, points, level, curr_idx, last_idx, time_ground
 
     # set up screen
     setup(1920, 1080, 0, 0)
@@ -268,6 +290,9 @@ def start():
     tracer(True)
     delay(0)
     setup_buttons()
+    keyboard.on_press_key("Enter", next_clicked)
+    keyboard.on_press_key("Backspace", back_clicked)
+    time_ground = time.time()
     reload_level()
 
 
