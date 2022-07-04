@@ -20,14 +20,14 @@ YOUR_TURN = "your turn"
 NOT_YOUR_TURN = "not your turn"
 
 shapes = [
-    'circle.gif',
-    'triangle.gif',
-    'star.gif',
-    'hexagon.gif',
-    'square.gif',
-    'rhombus.gif',
-    'rectangle.gif',
-    'pentagon.gif',
+    'circle',
+    'triangle',
+    'star',
+    'hexagon',
+    'square',
+    'rhombus',
+    'rectangle',
+    'pentagon',
 ]
 
 numbers = {
@@ -80,14 +80,14 @@ def create_sequence(count: int):
 def show_seq(seq: str):
     seq_list = seq.split(';')
     for i in range(len(seq_list)):
-        square(tiles[i][0], tiles[i][1], seq_list[i])
+        draw_img(tiles[i][0], tiles[i][1], seq_list[i])
     update()
 
 
-def square(x, y, name):
+def draw_img(x, y, name):
     wn = Screen()
-    if name.endswith('.gif'):
-        wn.register_shape(name)
+    name += '.gif'
+    wn.register_shape(name)
     tr = Turtle(shape=name)
     tr.up()
     tr.goto(x, y)
@@ -218,6 +218,14 @@ def reload_level():
     seq = create_sequence(level)
 
     # send the sequence to the showing screen
+
+    # UPDATE - NEW PROTOCOL
+    # LEVEL_NUMBER & OPTION(IMG, TXT-NAMES, TXT-COLORS, QR-NAMES, QR-COLORS) & SEQUENCE
+
+    # EXAMPLE: 2&TXT-COLORS&red;green
+    # EXAMPLE: 4&QR-NAMES&rectangle;triangle;circle;square
+    # EXAMPLE: 3&IMG&star;rhombus;pentagon
+
     sock.sendall((str(level) + seq).encode())
 
     # show the sequence on the screen
