@@ -24,16 +24,43 @@ clicked = False
 time_ground = 0
 history = {}
 
-shapes = [
-    'circle.gif',
-    'triangle.gif',
-    'star.gif',
-    'octagon.gif',
-    'square.gif',
-    'rhombus.gif',
-    'rectangle.gif',
-    'pentagon.gif',
-]
+seq_options = ['IMG', 'NAMES', 'COLORS']
+
+shapes = {
+    'IMG': [
+        'circle.gif',
+        'triangle.gif',
+        'star.gif',
+        'octagon.gif',
+        'square.gif',
+        'rhombus.gif',
+        'rectangle.gif',
+        'pentagon.gif'
+    ],
+
+    'NAMES': [
+        'circle',
+        'triangle',
+        'star',
+        'octagon',
+        'square',
+        'rhombus',
+        'rectangle',
+        'pentagon'
+    ],
+
+    'COLORS': [
+        'red',
+        'yellow',
+        'pink',
+        'brown',
+        'purple',
+        'orange',
+        'green',
+        'azure'
+    ]
+}
+
 
 numbers = {
     1: 'one.gif',
@@ -57,6 +84,7 @@ tiles = [
     (500, -0)
 ]
 
+
 ips = ['192.168.0.45', '192.168.0.42', '192.168.0.155', '192.168.0.64']  # static ips ,
 connections = []
 points = 0
@@ -66,21 +94,43 @@ last_idx = 0
 level = 0
 
 
-def create_sequence(count: int):
+def create_sequence():
     """
-    Create the sequence of the shapes randomly from the 'shapes' list
-    :param count: num of shapes (num of level)
+    Create the sequence of the shapes randomly
     :return: sequence of shapes
     """
+    ###
+
+    # UPDATE - NEW PROTOCOL
+    # LEVEL_NUMBER & OPTION(IMG, TXT-NAMES, TXT-COLORS, QR-NAMES, QR-COLORS) & SEQUENCE
+
+    # EXAMPLE: 2&TXT-COLORS&red;green
+    # EXAMPLE: 4&QR-NAMES&rectangle;triangle;circle;square
+    # EXAMPLE: 3&IMG&star;rhombus;pentagon
+
+    ###
+    global level
     used = []
     seq = ""
-    for i in range(0, count):
+    seq_mode = seq_options[random.randrange(0, 3)]
+    for i in range(0, level):
         rand = random.randrange(0, 8)
         while rand in used:
             rand = random.randrange(0, 8)
-        seq += shapes[rand] + ";"
+        seq += shapes[seq_mode][rand] + ";"
         used.append(rand)
-    return seq[:-1]
+
+    option = ''
+    if seq_mode == 'IMG':
+        option = 'IMG'
+    else:
+        is_qr = bool(random.getrandbits(1))
+        if is_qr:
+            option = 'QR-' + seq_mode
+        else:
+            option = 'TXT-' + seq_mode
+
+    return str(level) + '&' + option + '&' + seq[:-1]
 
 
 def show_seq(seq: str):
@@ -97,7 +147,7 @@ def show_seq(seq: str):
 
 def square(x, y, name):
     """
-    Graphic function - presenting a picture on the screen
+    Graphic function - presenting a picture/text on the screen
     :param x: x coordinate on the screen
     :param y: y coordinate on the screen
     :param name: picture's name
@@ -107,10 +157,10 @@ def square(x, y, name):
     name = 'sources/' + name
     if name.endswith('.gif'):
         wn.register_shape(name)
-    tr = Turtle(shape=name)
-    tr.up()
-    tr.goto(x, y)
-    tr.stamp()
+        tr = Turtle(shape=name)
+        tr.up()
+        tr.goto(x, y)
+        tr.stamp()
 
 
 def change_num(level: int, failed: bool = False):
@@ -317,15 +367,7 @@ def reload_level():
     # send the sequence to the showing screen
     sock.sendall(msg.encode())
 
-    ###
 
-    # Protocol should look like this:
-    #   level#seqType#seq
-    # level: the level number
-    # seqType: the type of the seq(images, text-names, text-colors, qr-names, qr-colors)
-    # seq: the sequence to present
-
-    ###
 
     # show the sequence on the screen
     show_seq(seq)
@@ -368,4 +410,3 @@ def start():
 if __name__ == "__main__":
     start()
     mainloop()
-
