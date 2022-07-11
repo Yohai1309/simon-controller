@@ -22,12 +22,13 @@ YOUR_TURN = "your turn"
 NOT_YOUR_TURN = "not your turn"
 clicked = False
 time_ground = 0
+history = {}
 
 shapes = [
     'circle.gif',
     'triangle.gif',
     'star.gif',
-    'hexagon.gif',
+    'octagon.gif',
     'square.gif',
     'rhombus.gif',
     'rectangle.gif',
@@ -65,11 +66,12 @@ last_idx = 0
 level = 0
 
 
-'''
-Create the sequence of the shapes randomly
-count - num of shapes (num of level)
-'''
 def create_sequence(count: int):
+    """
+    Create the sequence of the shapes randomly from the 'shapes' list
+    :param count: num of shapes (num of level)
+    :return: sequence of shapes
+    """
     used = []
     seq = ""
     for i in range(0, count):
@@ -82,6 +84,11 @@ def create_sequence(count: int):
 
 
 def show_seq(seq: str):
+    """
+    Present the sequence by sending each shape to 'square' function
+    :param seq: the sequence to present
+    :return: none
+    """
     seq_list = seq.split(';')
     for i in range(len(seq_list)):
         square(tiles[i][0], tiles[i][1], seq_list[i])
@@ -89,6 +96,13 @@ def show_seq(seq: str):
 
 
 def square(x, y, name):
+    """
+    Graphic function - presenting a picture on the screen
+    :param x: x coordinate on the screen
+    :param y: y coordinate on the screen
+    :param name: picture's name
+    :return: none
+    """
     wn = Screen()
     name = 'sources/' + name
     if name.endswith('.gif'):
@@ -100,6 +114,12 @@ def square(x, y, name):
 
 
 def change_num(level: int, failed: bool = False):
+    """
+    Updating the current number on the screen, depends on current state
+    :param level: current level
+    :param failed: a boolean flag ment to restart current level if failed
+    :return: True if level finished, otherwise false
+    """
     global curr, points
     if failed:
         curr = 0
@@ -113,18 +133,31 @@ def change_num(level: int, failed: bool = False):
 
 
 def fail():
+    """
+    Graphic function - changing the background color to red when failing
+    :return: none
+    """
     Screen().bgcolor("red")
     sleep(2)
     Screen().bgcolor("white")
 
 
 def success():
+    """
+    Graphic function - changing the background green when succeeding
+    :return: none
+    """
     Screen().bgcolor("green")
     sleep(2)
     Screen().bgcolor("white")
 
 
 def get_port(ip: str):
+    """
+    Network function - reaching for the raspberry pi to get his listening port from a local file
+    :param ip: the ip of the raspberry pi
+    :return: raspberry pi's listening port
+    """
     os.system("rm ./port.txt")
     os.system(f"sshpass -p 'Ninja@2022' scp simonpi@{ip}:/home/simonpi/Desktop/simon-py/port.txt ./port.txt")
     f = open("./port.txt", 'r')
@@ -134,6 +167,13 @@ def get_port(ip: str):
 
 
 def configure_button(x: int, y: int, txt: str):
+    """
+    Graphic function - configuring a buttton on the screen
+    :param x: x coordinate on the screen
+    :param y: y coordinate on the screen
+    :param txt: text to be written on top of the button
+    :return: button object
+    """
     button = Turtle()
     button.hideturtle()
     button.shape('circle')
@@ -148,13 +188,24 @@ def configure_button(x: int, y: int, txt: str):
 
 
 def back_clicked(e):
+    """
+    keyboard callback - when backspace clicked returning to previous state
+    :param e: event arguments(can be ignored)
+    :return: none
+    """
     global curr_idx, curr
     connections[curr_idx].sendall('B'.encode())
     curr -= 2
     change_num(level)
 
 
-def next_clicked(x = None, y = None):
+def next_clicked(x=None, y=None):
+    """
+    Button callback - when next clicked sending next and continuing for the next shape
+    :param x: x coordinate clicked on the screen
+    :param y: y coordinate clicked on the screen
+    :return: none
+    """
     global curr_idx, last_idx, level, points
     global clicked
     if clicked:
@@ -171,7 +222,13 @@ def next_clicked(x = None, y = None):
     clicked = False
 
 
-def fail_clicked(x, y):
+def fail_clicked(x=None, y=None):
+    """
+    Button callback - when fail clicked sending fail and restarting current level
+    :param x: x coordinate clicked on the screen
+    :param y: y coordinate clicked on the screen
+    :return: none
+    """
     global clicked
     if clicked:
         return
@@ -183,7 +240,13 @@ def fail_clicked(x, y):
     clicked = False
 
 
-def restart_clicked(x, y):
+def restart_clicked(x=None, y=None):
+    """
+    Button callback - when restart clicked sending restart, preseting points and restarting game
+    :param x: x coordinate clicked on the screen
+    :param y: y coordinate clicked on the screen
+    :return: none
+    """
     global clicked, time_ground
     if clicked:
         return
@@ -213,15 +276,13 @@ def restart_clicked(x, y):
     time_ground = time.time()
     reload_level()
     clicked = False
-    
-
-def is_msg_sent(sent):
-    if sent:
-        return True
-    return False
 
 
 def setup_buttons():
+    """
+    Setting up the buttons on the screen and linking them with their callbacks
+    :return: none
+    """
     # configure buttons
     next_button = configure_button(-400, -300, "next")
     next_button.onclick(next_clicked)
@@ -232,6 +293,10 @@ def setup_buttons():
 
 
 def reload_level():
+    """
+    reloading new level
+    :return:  none
+    """
     global curr, level, curr_idx
 
     tracer(False)
@@ -268,6 +333,10 @@ def reload_level():
 
 
 def start():
+    """
+    Starting the program (setting up the screen, connecting to the raspberry pis, setting up buttons...)
+    :return:
+    """
     global curr, points, level, curr_idx, last_idx, time_ground
 
     # set up screen
