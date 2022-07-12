@@ -16,6 +16,7 @@ from time import sleep
 import turtle
 from turtle import *
 import keyboard
+import qrcode
 
 
 YOUR_TURN = "your turn"
@@ -57,7 +58,7 @@ shapes = {
         'purple',
         'orange',
         'green',
-        'azure'
+        'blue'
     ]
 }
 
@@ -92,6 +93,22 @@ curr = 0
 curr_idx = 0
 last_idx = 0
 level = 0
+
+
+def draw_border():
+    """
+    Creating borders on screen for the text
+    :return: none
+    """
+    setheading(270)
+    delay(0)
+    for tile in tiles:
+        penup()
+        goto(tile[0] - 105, tile[1] + 105)
+        pendown()
+        for i in range(4):
+            forward(210)
+            left(90)
 
 
 def create_sequence():
@@ -129,8 +146,27 @@ def create_sequence():
             option = 'QR-' + seq_mode
         else:
             option = 'TXT-' + seq_mode
-
+    print(str(level) + '&' + option + '&' + seq[:-1])
     return str(level) + '&' + option + '&' + seq[:-1]
+
+
+def create_qr(seq: str, level: int):  # the level is a comfort thing only (for the qr name)
+    """
+    Create a qr code with data and saves it as a gif
+    :param seq: the sequence of text to get the data from
+    :param level: current level - used only for the name of the saved file
+    :return: path to the qr code
+    """
+    data = ""
+    qr = qrcode.QRCode(version=1, box_size=10, border=3)
+    for name in seq.split(';'):
+        data += name + '\n'
+    qr.add_data(data)
+    qr.make(fit=True)
+    img = qr.make_image(fill='black', back_color='white')
+    path = f'qr_{str(level)}.gif'
+    img.save(path)
+    return path
 
 
 def show_seq(seq: str):
@@ -139,7 +175,15 @@ def show_seq(seq: str):
     :param seq: the sequence to present
     :return: none
     """
-    seq_list = seq.split(';')
+    level, mode, shapes_seq = seq.split('&')
+    if 'QR' in mode:
+        path = create_qr(shapes_seq, level)
+        square(0, 200, path)
+        update()
+        return
+    if 'TXT' in mode:
+        draw_border()
+    seq_list = shapes_seq.split(';')
     for i in range(len(seq_list)):
         square(tiles[i][0], tiles[i][1], seq_list[i])
     update()
@@ -150,17 +194,24 @@ def square(x, y, name):
     Graphic function - presenting a picture/text on the screen
     :param x: x coordinate on the screen
     :param y: y coordinate on the screen
-    :param name: picture's name
+    :param name: picture's name / text to write
     :return: none
     """
     wn = Screen()
-    name = 'sources/' + name
     if name.endswith('.gif'):
+        if 'qr' not in name:
+            name = 'sources/' + name
         wn.register_shape(name)
         tr = Turtle(shape=name)
         tr.up()
         tr.goto(x, y)
         tr.stamp()
+    else:
+        penup()
+        goto(x, y)
+        pendown()
+        write(arg=name, font=("Ariel", 28, "bold"), align="center")
+        penup()
 
 
 def change_num(level: int, failed: bool = False):
@@ -200,6 +251,11 @@ def success():
     Screen().bgcolor("green")
     sleep(2)
     Screen().bgcolor("white")
+    Screen().clearscreen()
+    # set up the buttons on the screen
+    tracer(True)
+    delay(0)
+    setup_buttons()
 
 
 def get_port(ip: str):
@@ -244,6 +300,8 @@ def back_clicked(e):
     :return: none
     """
     global curr_idx, curr
+    if curr - 2 == 0:
+        pass
     connections[curr_idx].sendall('B'.encode())
     curr -= 2
     change_num(level)
@@ -361,12 +419,11 @@ def reload_level():
         level = 8
 
     # create the sequence
-    seq = create_sequence(level)
+    seq = create_sequence()
 
-    msg = str(level) +'#' + seq
     # send the sequence to the showing screen
-    sock.sendall(msg.encode())
-
+    print('Sending - ' + seq)
+    sock.sendall(seq.encode())
 
 
     # show the sequence on the screen
@@ -408,5 +465,6 @@ def start():
 
 
 if __name__ == "__main__":
+    delay(0)
     start()
     mainloop()
