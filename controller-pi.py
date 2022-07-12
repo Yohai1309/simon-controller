@@ -300,8 +300,8 @@ def back_clicked(e):
     :return: none
     """
     global curr_idx, curr
-    if curr - 2 == 0:
-        pass
+    if curr - 1 == 0:
+        return
     connections[curr_idx].sendall('B'.encode())
     curr -= 2
     change_num(level)
