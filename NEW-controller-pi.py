@@ -61,11 +61,11 @@ last_idx = 0
 level = 0
 
 
-'''
-Create the sequence of the shapes randomly
-count - num of shapes (num of level)
-'''
 def create_sequence(count: int):
+    """
+    Creates the sequence of the shapes randomly
+    count - num of shapes (num of level)
+    """
     used = []
     seq = ""
     for i in range(0, count):
@@ -101,7 +101,7 @@ def change_num(level: int, failed: bool = False):
     elif curr == level:
         curr = 0
         return True
-    square(50, -300, numbers[curr + 1])
+    draw_img(50, -300, numbers[curr + 1])
     update()
     curr += 1
     return False
