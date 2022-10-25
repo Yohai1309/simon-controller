@@ -13,17 +13,14 @@ import socket
 import os
 import time
 from time import sleep
+from tkinter import NONE
 import turtle
 from turtle import *
 import keyboard
 import qrcode
 
-
-YOUR_TURN = "your turn"
-NOT_YOUR_TURN = "not your turn"
 clicked = False
 time_ground = 0
-history = {}
 
 seq_options = ['IMG', 'NAMES', 'COLORS']
 
@@ -179,6 +176,7 @@ def show_seq(seq: str):
     if 'QR' in mode:
         path = create_qr(shapes_seq, level)
         square(0, 200, path)
+        square_qr_data(shapes_seq)
         update()
         return
     if 'TXT' in mode:
@@ -213,6 +211,16 @@ def square(x, y, name):
         write(arg=name, font=("Ariel", 28, "bold"), align="center")
         penup()
 
+
+def square_qr_data(seq):
+    data = '  '.join(seq.split(';'))
+    print(data)
+    data_t = Turtle()
+    delay(0)
+    data_t.penup()
+    data_t.sety(-200)
+    data_t.write(arg=data, font=("Ariel", 30, "bold"), align="center")
+    data_t.hideturtle()
 
 def change_num(level: int, failed: bool = False):
     """
@@ -272,7 +280,7 @@ def get_port(ip: str):
     return port
 
 
-def configure_button(x: int, y: int, txt: str):
+def configure_game_button(x: int, y: int, txt: str):
     """
     Graphic function - configuring a buttton on the screen
     :param x: x coordinate on the screen
@@ -292,6 +300,21 @@ def configure_button(x: int, y: int, txt: str):
     button.showturtle()
     return button
 
+
+def configure_start_button():
+    button = Turtle()
+    text = Turtle()
+
+    button.shape('circle')
+    button.shapesize(20)
+    button.fillcolor('green')
+    button.penup()
+    button.goto(0, 0)
+    button.showturtle()
+    button.onclick(start)  
+    text.sety(-40)
+    text.write("START", align='center', font=('Arial', 60, 'bold'))
+    text.hideturtle()
 
 def back_clicked(e):
     """
@@ -319,6 +342,11 @@ def next_clicked(x=None, y=None):
     if clicked:
         return
     clicked = True
+
+    # prevent Enter Holding bug
+    while keyboard.is_pressed('Enter'):
+        sleep(0.1)
+
     connections[curr_idx].sendall('K'.encode())
     if change_num(level):
         success()
@@ -373,19 +401,15 @@ def restart_clicked(x=None, y=None):
     print("Points - " + str(points))
     Screen().clearscreen()
 
-    # set up the buttons on the screen
-    tracer(True)
-    delay(0)
-    setup_buttons()
-
+  
     curr = 0
     level = 0
     points = 0
     while curr_idx == last_idx:
         curr_idx = random.randrange(0, 4)
     last_idx = curr_idx
-    time_ground = time.time()
-    reload_level()
+
+    start()
     clicked = False
 
 
@@ -395,11 +419,11 @@ def setup_buttons():
     :return: none
     """
     # configure buttons
-    next_button = configure_button(-400, -300, "next")
+    next_button = configure_game_button(-400, -300, "next")
     next_button.onclick(next_clicked)
-    fail_button = configure_button(-500, -300, "fail")
+    fail_button = configure_game_button(-500, -300, "fail")
     fail_button.onclick(fail_clicked)
-    restart_button = configure_button(-600, -300, "restart")
+    restart_button = configure_game_button(-600, -300, "restart")
     restart_button.onclick(restart_clicked)
 
 
@@ -433,7 +457,7 @@ def reload_level():
     change_num(level)
 
 
-def start():
+def init():
     """
     Starting the program (setting up the screen, connecting to the raspberry pis, setting up buttons...)
     :return:
@@ -444,21 +468,27 @@ def start():
     setup(1920, 1080, 0, 0)
 
     # configure connections
-    for ip in ips:
-        port = get_port(ip)
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect((ip, port))
-        connections.append(sock)
+    # for ip in ips:
+    #     port = get_port(ip)
+    #     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    #     sock.connect((ip, port))
+    #     connections.append(sock)
 
     # choose random screen
     curr_idx = random.randrange(0, 4)
     last_idx = curr_idx
+    configure_start_button()
 
+def start(x: None, y:None):
     # reload first level
+    global time_ground
+
+    Screen().clearscreen()
     # set up the buttons on the screen
     tracer(True)
     delay(0)
     setup_buttons()
+
     keyboard.on_press_key("Enter", next_clicked)
     keyboard.on_press_key("Backspace", back_clicked)
     time_ground = time.time()
@@ -467,5 +497,5 @@ def start():
 
 if __name__ == "__main__":
     delay(0)
-    start()
+    init()
     mainloop()

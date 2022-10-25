@@ -16,9 +16,6 @@ import turtle
 from turtle import *
 
 
-YOUR_TURN = "your turn"
-NOT_YOUR_TURN = "not your turn"
-
 shapes = [
     'circle',
     'triangle',
