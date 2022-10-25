@@ -364,7 +364,10 @@ def restart_clicked(x=None, y=None):
     total_time = time.time() - time_ground
     # show points
     Screen().clearscreen()
+    
+    # following line can be deleted after practice ends
     turtle.write("You gained " + str(points) + " Points!\nTimer - " + str(round(total_time, 2)), font=("Verdana", 50, "normal"), align="center")
+    
     hideturtle()
     sleep(10)
     print("Points - " + str(points))
@@ -403,7 +406,6 @@ def setup_buttons():
 def reload_level():
     """
     reloading new level
-    :return:  none
     """
     global curr, level, curr_idx
 
@@ -453,7 +455,6 @@ def start():
     last_idx = curr_idx
 
     # reload first level
-
     # set up the buttons on the screen
     tracer(True)
     delay(0)
