@@ -18,8 +18,10 @@ import turtle
 from turtle import *
 import keyboard
 import qrcode
+from threading import Thread
 
 clicked = False
+started = False
 time_ground = 0
 
 seq_options = ['IMG', 'NAMES', 'COLORS']
@@ -180,10 +182,16 @@ def show_seq(seq: str):
         update()
         return
     if 'TXT' in mode:
+        color("black")
         draw_border()
     seq_list = shapes_seq.split(';')
     for i in range(len(seq_list)):
         square(tiles[i][0], tiles[i][1], seq_list[i])
+    
+    penup()
+    goto(1900, 1080)
+    color("white")
+    
     update()
 
 
@@ -218,7 +226,7 @@ def square_qr_data(seq):
     data_t = Turtle()
     delay(0)
     data_t.penup()
-    data_t.sety(-200)
+    data_t.sety(-180)
     data_t.write(arg=data, font=("Ariel", 30, "bold"), align="center")
     data_t.hideturtle()
 
@@ -302,8 +310,10 @@ def configure_game_button(x: int, y: int, txt: str):
 
 
 def configure_start_button():
+    global started
+    started = False
     button = Turtle()
-    text = Turtle()
+    # text = Turtle()
 
     button.shape('circle')
     button.shapesize(20)
@@ -312,9 +322,9 @@ def configure_start_button():
     button.goto(0, 0)
     button.showturtle()
     button.onclick(start)  
-    text.sety(-40)
-    text.write("START", align='center', font=('Arial', 60, 'bold'))
-    text.hideturtle()
+    # text.sety(-40)
+    # text.write("START", align='center', font=('Arial', 60, 'bold'))
+    # text.hideturtle()
 
 def back_clicked(e):
     """
@@ -344,7 +354,7 @@ def next_clicked(x=None, y=None):
     clicked = True
 
     # prevent Enter Holding bug
-    while keyboard.is_pressed('Enter'):
+    while keyboard.is_pressed("Enter"):
         sleep(0.1)
 
     connections[curr_idx].sendall('K'.encode())
@@ -408,8 +418,7 @@ def restart_clicked(x=None, y=None):
     while curr_idx == last_idx:
         curr_idx = random.randrange(0, 4)
     last_idx = curr_idx
-
-    start()
+    configure_start_button()
     clicked = False
 
 
@@ -457,6 +466,15 @@ def reload_level():
     change_num(level)
 
 
+def next_handler():
+    global started
+    while True:
+        keyboard.wait("Enter")
+        print("Enter clicked")
+        if started:
+            next_clicked()
+
+
 def init():
     """
     Starting the program (setting up the screen, connecting to the raspberry pis, setting up buttons...)
@@ -465,31 +483,32 @@ def init():
     global curr, points, level, curr_idx, last_idx, time_ground
 
     # set up screen
-    setup(1920, 1080, 0, 0)
-
+    setup(1920, 1150, 0, 0)
+    th = Thread(target=next_handler)
+    th.start()
     # configure connections
-    # for ip in ips:
-    #     port = get_port(ip)
-    #     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    #     sock.connect((ip, port))
-    #     connections.append(sock)
+    for ip in ips:
+        port = get_port(ip)
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect((ip, port))
+        connections.append(sock)
 
     # choose random screen
     curr_idx = random.randrange(0, 4)
     last_idx = curr_idx
     configure_start_button()
 
+
 def start(x: None, y:None):
     # reload first level
-    global time_ground
-
+    global time_ground, started
     Screen().clearscreen()
     # set up the buttons on the screen
     tracer(True)
     delay(0)
     setup_buttons()
-
-    keyboard.on_press_key("Enter", next_clicked)
+    started = True
+    
     keyboard.on_press_key("Backspace", back_clicked)
     time_ground = time.time()
     reload_level()
